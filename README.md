@@ -49,19 +49,24 @@ import (
 func main() {
 	parser := argmap.NewArgsParser("Program name", "Program description")
 	parser.NewStringFlag(argmap.StringFlag{
-		Name: "hello",
+		Name:  "hello",
 		Short: "hi",
 		NArgs: 1,
-		Vars: []string{"urname"},
-		Help: "greets you"}
-	)
+		Vars:  []string{"urname"},
+		Help:  "greets you",
+	})
 
 	aMap, err := parser.Parse()
 	if err != nil {
 		parser.ReportError(err)
 	}
-	fmt.Println("Hello " + aMap["hello"])
+
+	if helloList, ok := aMap["hello"]; ok {
+		name := helloList.([]string)[0]
+		fmt.Println("Hello " + name)
+	}
 }
+
 ```
 
 In the code reported above, you can see how a StringFlag is defined and how it can be parsed. Example of user input:
