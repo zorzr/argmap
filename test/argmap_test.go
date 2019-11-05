@@ -1,9 +1,11 @@
-package argmap
+package test
 
 import (
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/zorzr/argmap"
 )
 
 const ProjectName = "argmap"
@@ -19,8 +21,8 @@ func TestCorrectStringFlagFull_Short(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	parser.NewStringFlag(StringFlag{Name: "hello", Short: "hi", NArgs: 1, Vars: []string{"name"}, Help: "greets you"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewStringFlag(argmap.StringFlag{Name: "hello", Short: "hi", NArgs: 1, Vars: []string{"name"}, Help: "greets you"})
 
 	// Everything fine using short
 	os.Args = []string{ProjectName, "-hi", "jack"}
@@ -36,8 +38,8 @@ func TestCorrectStringFlagFull_Long(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	parser.NewStringFlag(StringFlag{Name: "hello", Short: "hi", NArgs: 1, Vars: []string{"name"}, Help: "greets you"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewStringFlag(argmap.StringFlag{Name: "hello", Short: "hi", NArgs: 1, Vars: []string{"name"}, Help: "greets you"})
 
 	// Everything fine using full name
 	os.Args = []string{ProjectName, "--hello", "jack"}
@@ -53,8 +55,8 @@ func TestCorrectStringFlagFull_NoValue(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	parser.NewStringFlag(StringFlag{Name: "hello", Short: "hi", NArgs: 1, Vars: []string{"name"}, Help: "greets you"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewStringFlag(argmap.StringFlag{Name: "hello", Short: "hi", NArgs: 1, Vars: []string{"name"}, Help: "greets you"})
 
 	// No value
 	os.Args = []string{ProjectName, "--hello"}
@@ -72,8 +74,8 @@ func TestCorrectStringFlagFull_ExtraValue(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	parser.NewStringFlag(StringFlag{Name: "hello", Short: "hi", NArgs: 1, Vars: []string{"name"}, Help: "greets you"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewStringFlag(argmap.StringFlag{Name: "hello", Short: "hi", NArgs: 1, Vars: []string{"name"}, Help: "greets you"})
 
 	// One unrecognized extra value
 	os.Args = []string{ProjectName, "--hello", "jack", "jill"}
@@ -95,8 +97,8 @@ func TestCorrectStringFlagPartial_JustName(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	err := parser.NewStringFlag(StringFlag{Name: "hello"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	err := parser.NewStringFlag(argmap.StringFlag{Name: "hello"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -106,8 +108,8 @@ func TestCorrectStringFlagPartial_JustShort(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	err := parser.NewStringFlag(StringFlag{Short: "hi"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	err := parser.NewStringFlag(argmap.StringFlag{Short: "hi"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -117,8 +119,8 @@ func TestCorrectStringFlagPartial_Vars(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	err := parser.NewStringFlag(StringFlag{Short: "hi", Vars: []string{"name"}})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	err := parser.NewStringFlag(argmap.StringFlag{Short: "hi", Vars: []string{"name"}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -128,8 +130,8 @@ func TestCorrectStringFlagPartial_NArgs(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	err := parser.NewStringFlag(StringFlag{Short: "hi", NArgs: 2})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	err := parser.NewStringFlag(argmap.StringFlag{Short: "hi", NArgs: 2})
 	if err != nil {
 		t.Error(err)
 	}
@@ -139,8 +141,8 @@ func TestWrongStringFlag_UnspecifiedNArgs(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	err := parser.NewStringFlag(StringFlag{Short: "hi", Vars: []string{"name1", "name2"}})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	err := parser.NewStringFlag(argmap.StringFlag{Short: "hi", Vars: []string{"name1", "name2"}})
 	if err == nil || err.Error()[:len(ERRORTooManyNames)] != ERRORTooManyNames {
 		t.Errorf("Expecting error, got nil or wrong one")
 	}
@@ -153,8 +155,8 @@ func TestCorrectBoolFlag_JustName(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	err := parser.NewBoolFlag(BoolFlag{Name: "hello"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	err := parser.NewBoolFlag(argmap.BoolFlag{Name: "hello"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -172,8 +174,8 @@ func TestCorrectBoolFlag_JustShort(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	err := parser.NewBoolFlag(BoolFlag{Short: "hi"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	err := parser.NewBoolFlag(argmap.BoolFlag{Short: "hi"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -191,8 +193,8 @@ func TestCorrectBoolFlag_Full(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	err := parser.NewBoolFlag(BoolFlag{Name: "hello", Short: "hi", Help: "greets you"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	err := parser.NewBoolFlag(argmap.BoolFlag{Name: "hello", Short: "hi", Help: "greets you"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -213,8 +215,8 @@ func TestCorrectPositional_Required(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	err := parser.NewPositionalArg(PositionalArg{Name: "your_name", Required: true})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	err := parser.NewPositionalArg(argmap.PositionalArg{Name: "your_name", Required: true})
 	if err != nil {
 		t.Error(err)
 		return
@@ -233,8 +235,8 @@ func TestWrongPositional_Required(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	err := parser.NewPositionalArg(PositionalArg{Name: "your_name", Required: true})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	err := parser.NewPositionalArg(argmap.PositionalArg{Name: "your_name", Required: true})
 	if err != nil {
 		t.Error(err)
 		return
@@ -251,9 +253,9 @@ func TestCorrectPositional_Optional(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	parser.NewPositionalArg(PositionalArg{Name: "your_name", Required: true})
-	err := parser.NewPositionalArg(PositionalArg{Name: "greet_lang"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewPositionalArg(argmap.PositionalArg{Name: "your_name", Required: true})
+	err := parser.NewPositionalArg(argmap.PositionalArg{Name: "greet_lang"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -280,10 +282,10 @@ func TestCorrectPositional_TwoRequiredOneOptional(t *testing.T) {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 
-	parser := NewArgsParser(ProjectName, t.Name())
-	parser.NewPositionalArg(PositionalArg{Name: "greet_lang", Required: true})
-	parser.NewPositionalArg(PositionalArg{Name: "your_surname"})
-	parser.NewPositionalArg(PositionalArg{Name: "your_name", Required: true})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewPositionalArg(argmap.PositionalArg{Name: "greet_lang", Required: true})
+	parser.NewPositionalArg(argmap.PositionalArg{Name: "your_surname"})
+	parser.NewPositionalArg(argmap.PositionalArg{Name: "your_name", Required: true})
 
 	os.Args = []string{ProjectName, "en", "mario"}
 	aMap, err := parser.Parse()
@@ -306,45 +308,28 @@ func TestCorrectPositional_TwoRequiredOneOptional(t *testing.T) {
 /*** GENERIC INSERTION ERRORS *****************************************/
 /**********************************************************************/
 func TestWrongArgument_ExistingIdentifier(t *testing.T) {
-	parser := NewArgsParser(ProjectName, t.Name())
-	parser.NewStringFlag(StringFlag{Short: "hi"})
-	err := parser.NewStringFlag(StringFlag{Name: "hi"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewStringFlag(argmap.StringFlag{Short: "hi"})
+	err := parser.NewStringFlag(argmap.StringFlag{Name: "hi"})
 	if err == nil {
 		t.Errorf("Expecting error, got nil")
 	}
 }
 
 func TestWrongArgument_HelpIdentifier(t *testing.T) {
-	parser := NewArgsParser(ProjectName, t.Name())
-	err := parser.NewBoolFlag(BoolFlag{Name: "help"})
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	err := parser.NewBoolFlag(argmap.BoolFlag{Name: "help"})
 	if err == nil {
 		t.Errorf("Expecting error, got nil")
 	}
 }
 
 /**********************************************************************/
-/*** PRIVATE FUNCTIONS TESTS ******************************************/
+/*** GENERIC FUNCTIONS TESTS ******************************************/
 /**********************************************************************/
-func TestGetArgsList(t *testing.T) {
-	parser := NewArgsParser(ProjectName, t.Name())
-	parser.NewStringFlag(StringFlag{Short: "s"})
-	parser.NewBoolFlag(BoolFlag{Name: "bool"})
-	parser.NewPositionalArg(PositionalArg{Name: "name", Required: true})
-	parser.NewBoolFlag(BoolFlag{Name: "test"})
-	parser.NewPositionalArg(PositionalArg{Name: "surname"})
-	parser.NewStringFlag(StringFlag{Short: "t"})
-
-	// The test succeeds anyway
-	// parser.SortArgsList()
-
-	if argsCopy := parser.GetArgsList(); !reflect.DeepEqual(argsCopy, parser.argsList) {
-		t.Errorf("Wrong argument list: expected %s, got %s", parser.argsList, argsCopy)
-	}
-}
-
 func TestCustomHelp(t *testing.T) {
-	parser := NewArgsParser(ProjectName, t.Name())
-	parser.SetHelpGenerator(func(p *ArgsParser) string { return p.Name + " custom help" })
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.SetHelpGenerator(func(p *argmap.ArgsParser) string { return p.Name + " custom help" })
 
 	if parser.GenerateHelp() != ProjectName+" custom help" {
 		t.Errorf("Wrong help message: got %s", parser.GenerateHelp())
@@ -352,7 +337,7 @@ func TestCustomHelp(t *testing.T) {
 }
 
 func TestCustomHelpFlagText(t *testing.T) {
-	parser := NewArgsParser(ProjectName, t.Name())
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
 	parser.SetHelpFlagMessage("hello curious user!")
 
 	aList := parser.GetArgsList()
