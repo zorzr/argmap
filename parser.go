@@ -105,14 +105,17 @@ func (p *ArgsParser) Parse() (map[string]interface{}, error) {
 	var argsMap = make(map[string]interface{})
 	p.SortArgsList()
 
-	var nPosArg = 0
+	var posIndex = 0
 	var posArgs = []int{}
+	var reqPos = []string{}
 
 	var reprMap = make(map[string]*Argument)
 	for i, a := range p.argsList {
 		if a.getOrder() <= orderPositionalOpt {
-			nPosArg++
 			posArgs = append(posArgs, i)
+			if a.getOrder() == orderPositionalReq {
+				reqPos = append(reqPos, a.GetID())
+			}
 			continue
 		}
 
@@ -149,24 +152,21 @@ func (p *ArgsParser) Parse() (map[string]interface{}, error) {
 				os.Exit(0)
 			}
 		} else {
-			if nPosArg == 0 {
+			if len(posArgs) == posIndex {
 				return nil, fmt.Errorf("Error: unrecognized argument '%s'", os.Args[i])
 			}
 
-			pArg := p.argsList[posArgs[len(posArgs)-nPosArg]].(PositionalArg)
+			pArg := p.argsList[posArgs[posIndex]].(PositionalArg)
 			argsMap[pArg.GetID()] = os.Args[i]
-			nPosArg--
+			posIndex++
 		}
 	}
 
 	// We check if any required positional argument is missing
-	// TODO: can use IDs instead? (=> possible implementation for required flags)
-	if nPosArg > 0 {
-		for i := nPosArg; i > 0; i-- {
-			pArg := p.argsList[posArgs[len(posArgs)-i]].(PositionalArg)
-			if pArg.Required {
-				return nil, fmt.Errorf("Error: missing required positional argument '%s'", pArg.Name)
-			}
+	// TODO: possible implementation for required flags
+	for _, pos := range reqPos {
+		if !IsPresent(argsMap, pos) {
+			return nil, fmt.Errorf("Error: missing required positional argument '%s'", pos)
 		}
 	}
 

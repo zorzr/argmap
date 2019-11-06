@@ -2,6 +2,12 @@ package argmap
 
 import "fmt"
 
+// IsPresent just tells if an argument is present in the map
+func IsPresent(aMap map[string]interface{}, key string) bool {
+	_, ok := aMap[key]
+	return ok
+}
+
 // GetSFArray searches the map and possibly returns the list of argument values of a StringFlag.
 // An error is returned if the key is not in the map or the identifier does not indicate a
 // StringFlag output.

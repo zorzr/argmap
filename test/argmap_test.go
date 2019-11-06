@@ -324,6 +324,15 @@ func TestWrongArgument_HelpIdentifier(t *testing.T) {
 	}
 }
 
+func TestWrongArgument_ExistingRepresentation(t *testing.T) {
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewStringFlag(argmap.StringFlag{Short: "n"})
+	err := parser.NewStringFlag(argmap.StringFlag{Name: "name", Short: "n"})
+	if err == nil {
+		t.Errorf("Expecting error, got nil")
+	}
+}
+
 /**********************************************************************/
 /*** GENERIC FUNCTIONS TESTS ******************************************/
 /**********************************************************************/
