@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	parser := argmap.NewArgsParser("Greeter", "Says hello")
+	parser := argmap.NewArgsParser("Introducing myself", "Tells you how I'm called")
 	parser.NewPositionalArg(argmap.PositionalArg{Name: "name", Required: true})
 	parser.NewPositionalArg(argmap.PositionalArg{Name: "surname"})
 
