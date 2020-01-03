@@ -20,6 +20,7 @@ const orderPositionalOpt = 2
 const orderStringFlag = 3
 const orderBoolFlag = 4
 const orderHelpFlag = 9
+const orderCommand = 10
 
 /************************************************************/
 

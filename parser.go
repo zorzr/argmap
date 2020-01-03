@@ -15,7 +15,7 @@ import (
 )
 
 // HelpMessageGenerator type used to allow customizable help messages
-type HelpMessageGenerator func(*ArgsParser) string
+type HelpMessageGenerator func(*ArgsParser, []*Command) string
 
 // ArgsParser stores the list of possible arguments
 type ArgsParser struct {
@@ -38,37 +38,167 @@ func NewArgsParser(name, descr string) ArgsParser {
 }
 
 // DefaultHelp produces the standard complete help message for the program
-func DefaultHelp(p *ArgsParser) string {
-	help := fmt.Sprintf("%s\n%s\n\nArguments:\n", p.Name, p.Description)
-	argsHelp := make([][]string, len(p.argsList))
-	p.SortArgsList()
+func DefaultHelp(p *ArgsParser, cmdTrace []*Command) string {
+	help := fmt.Sprintf("%s\n%s\n", p.Name, p.Description)
 
-	maxLeftLen := 0
-	for i := 0; i < len(p.argsList); i++ {
-		argsHelp[i] = p.argsList[i].GetHelpStrings()
-		if len(argsHelp[i][0]) > maxLeftLen {
-			maxLeftLen = len(argsHelp[i][0])
+	if cmdTrace == nil || len(cmdTrace) == 0 {
+		// PROGRAM HELP
+		p.SortArgsList()
+		length := len(p.argsList)
+		argsHelp := make([][]string, length)
+
+		maxLeftLen := 0
+		commandsIndex := length
+		for i := 0; i < length; i++ {
+			argsHelp[i] = p.argsList[i].GetHelpStrings()
+			if len(argsHelp[i][0]) > maxLeftLen {
+				maxLeftLen = len(argsHelp[i][0])
+			}
+
+			if commandsIndex == length && p.argsList[i].getOrder() == orderCommand {
+				commandsIndex = i
+			}
 		}
-	}
 
-	if maxLeftLen > 40 {
-		maxLeftLen = 40
-	}
-
-	for i := 0; i < len(p.argsList); i++ {
-		argStr := argsHelp[i][0]
-		for len(argStr) <= maxLeftLen {
-			argStr += " "
+		if maxLeftLen > 40 {
+			maxLeftLen = 40
 		}
 
-		help += fmt.Sprintf("  %s %s\n", argStr, argsHelp[i][1])
+		help += "\nArguments:\n"
+		for i := 0; i < length; i++ {
+			if i == commandsIndex {
+				help += "\nCommands:\n"
+			}
+
+			argStr := argsHelp[i][0]
+			for len(argStr) <= maxLeftLen {
+				argStr += " "
+			}
+			help += fmt.Sprintf("  %s %s\n", argStr, argsHelp[i][1])
+
+			if i == length-1 && commandsIndex < length {
+				help += "Type -h or --help after a command for more details\n"
+			}
+		}
+	} else {
+		// COMMAND HELP
+		traceString := ""
+		for i := len(cmdTrace) - 1; i >= 0; i-- {
+			traceString += fmt.Sprintf(" %s", cmdTrace[i].GetID())
+		}
+
+		help += fmt.Sprintf("\nReference: %s\n", traceString)
+		help += cmdTrace[0].GenerateHelp()
 	}
+
 	return help
+}
+
+func parseArgs(args []string, argsList []Argument) (map[string]interface{}, error) {
+	var argsMap = make(map[string]interface{})
+
+	var posIndex = 0
+	var posArgs = []int{}
+	var reqPos = []string{}
+
+	var reprMap = make(map[string]*Argument)
+	for i, a := range argsList {
+		if a.getOrder() <= orderPositionalOpt {
+			posArgs = append(posArgs, i)
+			if a.getOrder() == orderPositionalReq {
+				reqPos = append(reqPos, a.GetID())
+			}
+			continue
+		}
+
+		for _, r := range a.Represent() {
+			reprMap[r] = &argsList[i]
+		}
+	}
+
+	n := len(args)
+	for i := 0; i < n; i++ {
+		if arg, ok := reprMap[args[i]]; ok {
+			switch (*arg).getOrder() {
+			// STRINGFLAG
+			case orderStringFlag:
+				flag := (*arg).(StringFlag)
+
+				if i+flag.NArgs >= n {
+					return nil, fmt.Errorf("Error: incorrect arguments usage")
+				}
+
+				var j int
+				var values = make([]string, flag.NArgs)
+				for j = 0; j < flag.NArgs; j++ {
+					values[j] = args[i+j+1] // TODO: check if arg is in reprMap?
+				}
+				i += j
+
+				argsMap[flag.GetID()] = values
+
+			// BOOLFLAG
+			case orderBoolFlag:
+				flag := (*arg).(BoolFlag)
+				argsMap[flag.GetID()] = true
+
+			// HELPFLAG
+			case orderHelpFlag:
+				argsMap = map[string]interface{}{"help": true}
+				return argsMap, nil
+
+			// COMMAND
+			case orderCommand:
+				cmd := (*arg).(*Command)
+				cmdMap, err := cmd.parseArgs(args[i+1:])
+				if err != nil {
+					return nil, err
+				}
+
+				if GetBool(cmdMap, "help") {
+					trace := []*Command{}
+					if IsPresent(cmdMap, "trace") {
+						trace = cmdMap["trace"].([]*Command)
+					}
+					trace = append(trace, cmd)
+					cmdMap["trace"] = trace
+					return cmdMap, nil
+				}
+
+				argsMap[cmd.GetID()] = cmdMap
+				i = n
+			}
+		} else {
+			// POSITIONAL ARGUMENTS
+			if len(posArgs) == posIndex {
+				return nil, fmt.Errorf("Error: unrecognized argument '%s'", args[i])
+			}
+
+			pArg := argsList[posArgs[posIndex]].(PositionalArg)
+			argsMap[pArg.GetID()] = args[i]
+			posIndex++
+		}
+	}
+
+	// We check if any required positional argument is missing
+	// TODO: possible implementation for required flags
+	for _, pos := range reqPos {
+		if !IsPresent(argsMap, pos) {
+			return nil, fmt.Errorf("Error: missing required positional argument '%s'", pos)
+		}
+	}
+
+	return argsMap, nil
 }
 
 // GenerateHelp produces the help string to be shown when the "-h" or "--help" flags are inserted by the user.
 func (p *ArgsParser) GenerateHelp() string {
-	return p.helpGen(p)
+	return p.helpGen(p, nil)
+}
+
+// GenerateCommandHelp produces the help string for a Command to be shown when the "-h" or "--help" flags are inserted by the user.
+func (p *ArgsParser) GenerateCommandHelp(cmdTrace []*Command) string {
+	return p.helpGen(p, cmdTrace)
 }
 
 // SetHelpGenerator accepts a function to be used to generate a custom help message
@@ -89,7 +219,13 @@ func (p *ArgsParser) SetHelpFlagMessage(m string) {
 
 // PrintHelp shows the complete help message for the program
 func (p *ArgsParser) PrintHelp() {
-	help := p.helpGen(p)
+	help := p.helpGen(p, nil)
+	fmt.Println(help)
+}
+
+// PrintCommandHelp shows the complete help message for a program command
+func (p *ArgsParser) PrintCommandHelp(cmdTrace []*Command) {
+	help := p.helpGen(p, cmdTrace)
 	fmt.Println(help)
 }
 
@@ -102,80 +238,23 @@ func (p *ArgsParser) ReportError(err error) {
 
 // Parse function returns a map with argument values
 func (p *ArgsParser) Parse() (map[string]interface{}, error) {
-	var argsMap = make(map[string]interface{})
 	p.SortArgsList()
-
-	var posIndex = 0
-	var posArgs = []int{}
-	var reqPos = []string{}
-
-	var reprMap = make(map[string]*Argument)
-	for i, a := range p.argsList {
-		if a.getOrder() <= orderPositionalOpt {
-			posArgs = append(posArgs, i)
-			if a.getOrder() == orderPositionalReq {
-				reqPos = append(reqPos, a.GetID())
-			}
-			continue
-		}
-
-		for _, r := range a.Represent() {
-			reprMap[r] = &p.argsList[i]
-		}
+	argsMap, err := parseArgs(os.Args[1:], p.argsList)
+	if err != nil {
+		return nil, err
 	}
 
-	n := len(os.Args)
-	for i := 1; i < n; i++ { // we ignore the program executable name
-		if arg, ok := reprMap[os.Args[i]]; ok {
-			if (*arg).getOrder() == orderStringFlag {
-				flag := (*arg).(StringFlag)
-
-				if i+flag.NArgs >= n {
-					return nil, fmt.Errorf("Error: incorrect arguments usage")
-				}
-
-				// TODO: can replace these blocks with argument-specific functions?
-				values := make([]string, flag.NArgs)
-
-				var j int
-				for j = 0; j < flag.NArgs; j++ {
-					values[j] = os.Args[i+j+1]
-				}
-				i += j
-
-				argsMap[flag.GetID()] = values
-			} else if (*arg).getOrder() == orderBoolFlag {
-				flag := (*arg).(BoolFlag)
-				argsMap[flag.GetID()] = true
-			} else if (*arg).getOrder() == orderHelpFlag {
-				p.PrintHelp()
-				os.Exit(0)
-			}
+	if GetBool(argsMap, "help") {
+		if !IsPresent(argsMap, "trace") {
+			p.PrintHelp()
 		} else {
-			if len(posArgs) == posIndex {
-				return nil, fmt.Errorf("Error: unrecognized argument '%s'", os.Args[i])
-			}
-
-			pArg := p.argsList[posArgs[posIndex]].(PositionalArg)
-			argsMap[pArg.GetID()] = os.Args[i]
-			posIndex++
+			cmdTrace := argsMap["trace"].([]*Command)
+			p.PrintCommandHelp(cmdTrace)
 		}
-	}
-
-	// We check if any required positional argument is missing
-	// TODO: possible implementation for required flags
-	for _, pos := range reqPos {
-		if !IsPresent(argsMap, pos) {
-			return nil, fmt.Errorf("Error: missing required positional argument '%s'", pos)
-		}
+		os.Exit(0)
 	}
 
 	return argsMap, nil
-}
-
-// newArgument appends the argument passed as input to the array
-func (p *ArgsParser) newArgument(a Argument) {
-	p.argsList = append(p.argsList, a)
 }
 
 // NewStringFlag checks the fields for consistency and inserts the new flag
@@ -201,7 +280,7 @@ func (p *ArgsParser) NewStringFlag(f StringFlag) error {
 		return err
 	}
 
-	p.newArgument(f)
+	p.argsList = append(p.argsList, f)
 	return nil
 }
 
@@ -216,7 +295,7 @@ func (p *ArgsParser) NewBoolFlag(f BoolFlag) error {
 		return err
 	}
 
-	p.newArgument(f)
+	p.argsList = append(p.argsList, f)
 	return nil
 }
 
@@ -231,8 +310,30 @@ func (p *ArgsParser) NewPositionalArg(a PositionalArg) error {
 		return err
 	}
 
-	p.newArgument(a)
+	p.argsList = append(p.argsList, a)
 	return nil
+}
+
+// NewCommand checks the argument identifier and inserts it
+func (p *ArgsParser) NewCommand(param CommandParams) (*Command, error) {
+	if param.Name == "" {
+		return nil, fmt.Errorf("Error: unspecified command name")
+	}
+
+	c := &Command{
+		name:     param.Name,
+		Help:     param.Help,
+		argsList: []Argument{HelpFlag{"shows command help and exits"}},
+		helpGen:  DefaultCommandHelp,
+	}
+
+	err := checkIdentifiers(p.argsList, c)
+	if err != nil {
+		return nil, err
+	}
+
+	p.argsList = append(p.argsList, c)
+	return c, nil
 }
 
 // SortArgsList sorts the list of arguments according to their type. This allows to

@@ -305,6 +305,114 @@ func TestCorrectPositional_TwoRequiredOneOptional(t *testing.T) {
 }
 
 /**********************************************************************/
+/*** COMMANDS AND SUBCOMMANDS *****************************************/
+/**********************************************************************/
+func TestCommandStringFlag(t *testing.T) {
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	cmd, _ := parser.NewCommand(argmap.CommandParams{Name: "run"})
+	cmd.NewStringFlag(argmap.StringFlag{Name: "hello", Short: "hi", NArgs: 1, Vars: []string{"name"}, Help: "greets you"})
+	expMap := map[string]interface{}{"run": nil}
+
+	os.Args = []string{ProjectName, "run", "-hi", "Luke"}
+	aMap, err := parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if expMap["run"] = map[string]interface{}{"hello": []string{"Luke"}}; !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+
+	os.Args = []string{ProjectName, "-hi", "Luke"}
+	aMap, err = parser.Parse()
+	if err == nil {
+		t.Errorf("Expecting error, got nil")
+	}
+
+	os.Args = []string{ProjectName, "run", "-hi"}
+	aMap, err = parser.Parse()
+	if err == nil {
+		t.Errorf("Expecting error, got nil")
+	}
+
+	os.Args = []string{ProjectName, "run", "Luke"}
+	aMap, err = parser.Parse()
+	if err == nil {
+		t.Errorf("Expecting error, got nil")
+	}
+}
+
+func TestCommandMultipleFlags(t *testing.T) {
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewStringFlag(argmap.StringFlag{Name: "hello", Help: "greets you"})
+	parser.NewBoolFlag(argmap.BoolFlag{Name: "english"})
+
+	cmd, _ := parser.NewCommand(argmap.CommandParams{Name: "add"})
+	cmd.NewPositionalArg(argmap.PositionalArg{Name: "a", Required: true})
+	cmd.NewPositionalArg(argmap.PositionalArg{Name: "b"})
+	cmd.NewStringFlag(argmap.StringFlag{Name: "hello"})
+	cmd.NewBoolFlag(argmap.BoolFlag{Short: "v"})
+
+	cmd, _ = parser.NewCommand(argmap.CommandParams{Name: "run"})
+	cmd.NewStringFlag(argmap.StringFlag{Name: "hello"})
+
+	expMap := map[string]interface{}{"hello": []string{"Roger"}, "run": nil}
+	os.Args = []string{ProjectName, "--hello", "Roger", "run"}
+	aMap, err := parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if expMap["run"] = map[string]interface{}{}; !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+
+	expMap = map[string]interface{}{"hello": []string{"Roger"}, "add": nil}
+	os.Args = []string{ProjectName, "--hello", "Roger", "add", "1", "-v", "2"}
+	aMap, err = parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if expMap["add"] = map[string]interface{}{"a": "1", "v": true, "b": "2"}; !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+
+	expMap = map[string]interface{}{"add": map[string]interface{}{"a": "1", "b": "2", "hello": []string{"Roger"}, "v": true}}
+	os.Args = []string{ProjectName, "add", "1", "2", "--hello", "Roger", "-v"}
+	aMap, err = parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+}
+
+func TestSubcommandArguments(t *testing.T) {
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+
+	cmd, _ := parser.NewCommand(argmap.CommandParams{Name: "run"})
+	cmd.NewStringFlag(argmap.StringFlag{Name: "out", Short: "o"})
+	cmd.NewBoolFlag(argmap.BoolFlag{Short: "hi"})
+
+	sub, _ := cmd.NewSubcommand(argmap.CommandParams{Name: "fast"})
+	sub.NewStringFlag(argmap.StringFlag{Name: "hello", Short: "hi"})
+	sub.NewStringFlag(argmap.StringFlag{Name: "out", Short: "o"})
+
+	expMap := map[string]interface{}{"run": map[string]interface{}{"hi": true, "fast": map[string]interface{}{"hello": []string{"Roger"}, "out": []string{"file.txt"}}}}
+	os.Args = []string{ProjectName, "run", "-hi", "fast", "-hi", "Roger", "-o", "file.txt"}
+	aMap, err := parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+}
+
+/**********************************************************************/
 /*** GENERIC INSERTION ERRORS *****************************************/
 /**********************************************************************/
 func TestWrongArgument_ExistingIdentifier(t *testing.T) {
@@ -338,7 +446,7 @@ func TestWrongArgument_ExistingRepresentation(t *testing.T) {
 /**********************************************************************/
 func TestCustomHelp(t *testing.T) {
 	parser := argmap.NewArgsParser(ProjectName, t.Name())
-	parser.SetHelpGenerator(func(p *argmap.ArgsParser) string { return p.Name + " custom help" })
+	parser.SetHelpGenerator(func(p *argmap.ArgsParser, cmdTr []*argmap.Command) string { return p.Name + " custom help" })
 
 	if parser.GenerateHelp() != ProjectName+" custom help" {
 		t.Errorf("Wrong help message: got %s", parser.GenerateHelp())
