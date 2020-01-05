@@ -54,3 +54,14 @@ func GetPositional(aMap map[string]interface{}, key string) (string, error) {
 	}
 	return "", fmt.Errorf("Error: key not found in map")
 }
+
+// GetCommandMap returns the name of the inserted command in the map and the corresponding argument
+// map for that command. Returns an error if no command has been invoked by the user
+func GetCommandMap(aMap map[string]interface{}) (string, map[string]interface{}, error) {
+	for key, value := range aMap {
+		if cmdMap, ok := value.(map[string]interface{}); ok {
+			return key, cmdMap, nil
+		}
+	}
+	return "", nil, fmt.Errorf("Error: no command found in map")
+}
