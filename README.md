@@ -12,19 +12,22 @@ Along with positional arguments, different types of flags can be defined accordi
   - Can be both required or optional
   - The inserted values are stored in the map as strings
     - ```E.g.:    map["arg_name": "inserted_value"]```
-
 - `StringFlag`  arguments
   - ```Usage:    argmap [-f|--flag] [value1] [value2]```
   - Customizable number of input values (separated by a space `' '`)
   - The two values are inserted in a map as a slice of strings
     - Easy to retrieve and manage (e.g., integer conversion)
     - ```E.g.:    map["flag": ["v1", "v2"]]```
-
 - `BoolFlag`  arguments
   - ```Usage:    argmap [-f|--flag]```
   - If the flag is present, `true` is stored in the map
     - ```E.g.:    map["flag": true]```
-
+- Commands support
+  -  ```Usage:    argmap [command name] [-b|--bool] [-f|--flag] [positional]```
+  - When a command is typed, all the subsequent command-line inputs are processed by the corresponding `Command` object and stored in the argument map as another map
+    - ```E.g.:    map["command": map[...], "program_boolflag": true]```
+  - Commands can have their own subcommands too
+    - ```E.g.:    map["cmd": map["sub": map[...]]]```
 - Customizable help message
 - Flexible parameters management and error handling
   - Errors aren't automatically reported, but a simple function can be called if you want to
@@ -146,6 +149,40 @@ parser.PrintHelp()
 
 
 
+### Adding a Command
+
+```go
+cmd, err := parser.NewCommand(argmap.CommandParams{Name: "cmd", Help: "a parser command"})
+```
+
+A `Command` is a type of argument which works like a positional and can accept other flags, positionals or even other sub-commands. Commands can be created with the following parameters:
+
+- *Name*: the command name (will be used as identifier in the final map).
+- *Help*: help message to be displayed for the command
+
+A `Command` processes all the arguments that are passed afterwards, if present. Those will be stored in a separate map inside the complete one returned from the `ArgsParser`.
+
+```
+./app.exe cmd command_positional --command_flag
+./app.exe --program_flag cmd command_positional --command_flag
+```
+
+```go
+map["program_flag": true, "cmd": map["command_flag": true, "command_positional": "command_positional"]]
+```
+
+Arguments and subcommands can be added to a `Command` by using the pointer returned by the parser. The methods are identical to the `ArgsParser` ones except for `NewSubcommand()`, which has been changed to improve code readability. Furthermore, commands have their own help generator which can be customized as well. The `[--help|-h]` flag is already inserted by default.
+
+```go
+cmd, err := parser.NewCommand(argmap.CommandParams{Name: "cmd", Help: "a parser command"})
+cmd.NewPositionalArg(argmap.PositionalArg{Name: "command_positional"})
+cmd.NewBoolFlag(argmap.BoolFlag{Name: "command_flag"})
+
+sub, err := cmd.NewSubcommand(argmap.CommandParams{Name: "sub"})
+```
+
+
+
 ### Possible mistakes with argument names
 
 Two main concepts to be kept into considerations:
@@ -176,9 +213,9 @@ err := parser.NewBoolFlag(argmap.BoolFlag{Name: "bool", Short: "b")
 
 ### I'm confused. How can I put all those pieces together?
 
-Worry not, it's easier to use than to learn.
+Worry not, it's easier to use than to learn. The package includes a set of easy functions for retrieving arguments from the returned map in a straightforward manner.
 
-Look at the [hello example](https://github.com/zorzr/argmap/blob/master/examples/hello/main.go). It shows a simple usage of a StringFlag and highlights a useful function for retrieving values from the map. Here's two possible user inputs and the respective outputs:
+Look at the [hello example](https://github.com/zorzr/argmap/blob/master/examples/hello/main.go) for a simple usage of a StringFlag and to see how values can be obtained. Here's two possible user inputs and the corresponding outputs:
 
 ```
 $ hello -hi Jack
@@ -189,13 +226,24 @@ Hello Jill
 
 
 
-Looking for positionals? Check out the [myname_pos example](https://github.com/zorzr/argmap/blob/master/examples/myname_pos/main.go) instead. Some randomly chosen inputs:
+Interested in positionals? Check out the [myname_pos example](https://github.com/zorzr/argmap/blob/master/examples/myname_pos/main.go) instead. Some randomly chosen inputs:
 
 ```
 $ myname_pos James
 My name is James
 $ myname_pos James Bond
 My name is Bond, James Bond
+```
+
+
+
+A brief example of [commands and subcommands usage](https://github.com/zorzr/argmap/blob/master/examples/print/main.go):
+
+```
+$ example.exe hello
+Nice to meet you!
+$ example.exe print string "An interesting quote"
+An interesting quote
 ```
 
 
@@ -207,7 +255,6 @@ In the `examples` you can find other common usages and several tricks to make a 
 ## Upcoming functionalities
 
 - Variable number of arguments for StringFlags
-- Commands definition and argument parsing
 - Required StringFlags (for design simplicity)
 - Parallelism through goroutines
 
