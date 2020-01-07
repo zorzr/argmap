@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 )
 
 // HelpMessageGenerator type used to allow customizable help messages
@@ -231,7 +232,7 @@ func (p *ArgsParser) PrintCommandHelp(cmdTrace []*Command) {
 
 // ReportError prints the passed error's message, shows the correct usage and quits
 func (p *ArgsParser) ReportError(err error) {
-	fmt.Println(err.Error())
+	fmt.Printf("%s\n\n", err.Error())
 	p.PrintHelp()
 	os.Exit(0)
 }
@@ -241,7 +242,12 @@ func (p *ArgsParser) Parse() (map[string]interface{}, error) {
 	p.SortArgsList()
 	argsMap, err := parseArgs(os.Args[1:], p.argsList)
 	if err != nil {
-		return nil, err
+		placeholder := "[*]"
+		errorString := err.Error()
+		if strings.Contains(errorString, placeholder) {
+			errorString = strings.Replace(errorString, placeholder, "", 1)
+		}
+		return nil, fmt.Errorf(errorString)
 	}
 
 	if GetBool(argsMap, "help") {

@@ -3,6 +3,7 @@ package argmap
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // CommandHelpGenerator type used to allow customizable help for commands
@@ -209,7 +210,13 @@ func (c *Command) parseArgs(args []string) (map[string]interface{}, error) {
 	c.SortArgsList()
 	argsMap, err := parseArgs(args, c.argsList)
 	if err != nil {
-		return nil, fmt.Errorf("%s for command %s", err.Error(), c.name)
+		placeholder := "[*]"
+		errorString := err.Error()
+		if strings.Contains(errorString, placeholder) {
+			errorString = strings.Replace(errorString, placeholder, fmt.Sprintf("%s%s ", placeholder, c.name), 1)
+			return nil, fmt.Errorf(errorString)
+		}
+		return nil, fmt.Errorf("%s for command '%s%s'", errorString, placeholder, c.name)
 	}
 	return argsMap, nil
 }
