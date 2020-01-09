@@ -30,7 +30,7 @@ func main() {
 	}
 
 	action, _ := argmap.GetPositional(aMap, "action")
-	if operands, err := argmap.GetSFArray(aMap, "o"); err == nil {
+	if operands, err := argmap.GetList(aMap, "o"); err == nil {
 		if a, b, err := conv(operands); err == nil {
 			switch action {
 			case "add":

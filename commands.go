@@ -152,6 +152,24 @@ func (c *Command) NewStringFlag(f StringFlag) error {
 	return nil
 }
 
+// NewListFlag checks the fields for consistency and inserts the new flag
+func (c *Command) NewListFlag(f ListFlag) error {
+	if f.Name == "" && f.Short == "" {
+		return fmt.Errorf("Error: at least one identifier must be specified")
+	}
+	if f.Var == "" {
+		f.Var = "value"
+	}
+
+	err := checkIdentifiers(&c.argsList, f)
+	if err != nil {
+		return err
+	}
+
+	c.argsList = append(c.argsList, f)
+	return nil
+}
+
 // NewBoolFlag checks the flag representations and inserts the new flag
 func (c *Command) NewBoolFlag(f BoolFlag) error {
 	if f.Name == "" && f.Short == "" {

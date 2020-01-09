@@ -15,7 +15,7 @@ func main() {
 	})
 
 	aMap, _ := parser.Parse()
-	names, err := argmap.GetSFArray(aMap, "hello")
+	names, err := argmap.GetList(aMap, "hello")
 	if err != nil {
 		parser.ReportError(err)
 	}

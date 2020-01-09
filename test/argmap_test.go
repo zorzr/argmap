@@ -9,7 +9,7 @@ import (
 )
 
 const ProjectName = "argmap"
-const ERRORUsage = "Error: incorrect arguments usage"
+const ERRORUsage = "Error: incorrect arguments number for flag"
 const ERRORUnrecognized = "Error: unrecognized argument"
 const ERRORTooManyNames = "Error: too many value names specified"
 const ERRORMissingPositional = "Error: missing required positional argument"
@@ -62,7 +62,7 @@ func TestCorrectStringFlagFull_NoValue(t *testing.T) {
 	os.Args = []string{ProjectName, "--hello"}
 	aMap, err := parser.Parse()
 	if err != nil {
-		if err.Error() != ERRORUsage {
+		if err.Error() != ERRORUsage+" '--hello'" {
 			t.Error(err)
 		}
 	} else {
@@ -81,7 +81,6 @@ func TestCorrectStringFlagFull_ExtraValue(t *testing.T) {
 	os.Args = []string{ProjectName, "--hello", "jack", "jill"}
 	aMap, err := parser.Parse()
 	if err != nil {
-		// if err.Error()[:len(ERRORUnrecognized)] != ERRORUnrecognized {
 		if err.Error() != ERRORUnrecognized+" 'jill'" {
 			t.Error(err)
 		}
@@ -145,6 +144,111 @@ func TestWrongStringFlag_UnspecifiedNArgs(t *testing.T) {
 	err := parser.NewStringFlag(argmap.StringFlag{Short: "hi", Vars: []string{"name1", "name2"}})
 	if err == nil || err.Error()[:len(ERRORTooManyNames)] != ERRORTooManyNames {
 		t.Errorf("Expecting error, got nil or wrong one")
+	}
+}
+
+/**********************************************************************/
+/*** LISTFLAG INSERTION AND PARSING ***********************************/
+/**********************************************************************/
+func TestCorrectListFlagFull(t *testing.T) {
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewStringFlag(argmap.StringFlag{Name: "hello", Help: "greets you"})
+	parser.NewBoolFlag(argmap.BoolFlag{Name: "test", Short: "t", Help: "just trying"})
+	parser.NewListFlag(argmap.ListFlag{Name: "list", Short: "l", Var: "item", Help: "give me stuff"})
+
+	expMap := map[string]interface{}{"list": []string{"a", "b", "c"}}
+	os.Args = []string{ProjectName, "--list", "a", "b", "c"}
+	aMap, err := parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+
+	expMap = map[string]interface{}{"list": []string{"a", "b"}, "hello": []string{"Novak"}}
+	os.Args = []string{ProjectName, "-l", "a", "b", "--hello", "Novak"}
+	aMap, err = parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+
+	expMap = map[string]interface{}{"hello": []string{"Roger"}, "list": []string{"a", "b"}, "test": true}
+	os.Args = []string{ProjectName, "--hello", "Roger", "-l", "a", "b", "-t"}
+	aMap, err = parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+
+	expMap = map[string]interface{}{"list": []string{"a"}, "test": true}
+	os.Args = []string{ProjectName, "-t", "-l", "--list", "a"}
+	aMap, err = parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+}
+
+func TestCorrectListFlagPartial(t *testing.T) {
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewBoolFlag(argmap.BoolFlag{Name: "test", Short: "t", Help: "just trying"})
+	parser.NewListFlag(argmap.ListFlag{Short: "l"})
+
+	expMap := map[string]interface{}{"l": []string{"a"}}
+	os.Args = []string{ProjectName, "-l", "a"}
+	aMap, err := parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+
+	expMap = map[string]interface{}{"l": []string{"a", "b"}, "test": true}
+	os.Args = []string{ProjectName, "-l", "a", "b", "-t"}
+	aMap, err = parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+
+	expMap = map[string]interface{}{"l": []string{}, "test": true}
+	os.Args = []string{ProjectName, "-l", "a", "b", "-t", "-l"}
+	aMap, err = parser.Parse()
+	if err != nil {
+		t.Error(err)
+	} else if !reflect.DeepEqual(aMap, expMap) {
+		t.Errorf("Wrong returned map: expected %s, got %s", expMap, aMap)
+	}
+}
+
+func TestWrongListFlag(t *testing.T) {
+	parser := argmap.NewArgsParser(ProjectName, t.Name())
+	parser.NewBoolFlag(argmap.BoolFlag{Name: "test", Short: "t", Help: "just trying"})
+
+	err := parser.NewListFlag(argmap.ListFlag{Short: "t"})
+	if err == nil {
+		t.Errorf("Expecting error, got nil")
+	}
+
+	err = parser.NewListFlag(argmap.ListFlag{Short: "test"})
+	if err == nil {
+		t.Errorf("Expecting error, got nil")
+	}
+
+	err = parser.NewListFlag(argmap.ListFlag{Name: "test"})
+	if err == nil {
+		t.Errorf("Expecting error, got nil")
 	}
 }
 

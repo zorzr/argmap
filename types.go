@@ -18,7 +18,8 @@ type Argument interface {
 const orderPositionalReq = 1
 const orderPositionalOpt = 2
 const orderStringFlag = 3
-const orderBoolFlag = 4
+const orderListFlag = 4
+const orderBoolFlag = 5
 const orderHelpFlag = 9
 const orderCommand = 10
 
@@ -86,6 +87,66 @@ func (f StringFlag) GetHelpStrings() []string {
 // Defines the priority of the argument for sorting (also used to determine the argument type)
 func (f StringFlag) getOrder() int {
 	return orderStringFlag
+}
+
+/*******************************************************/
+
+// ListFlag argument
+type ListFlag struct {
+	Name  string
+	Short string
+	Var   string
+	Help  string
+}
+
+// GetID returns the identifier of the argument
+func (f ListFlag) GetID() string {
+	if f.Name != "" {
+		return f.Name
+	}
+	return f.Short
+}
+
+// ShortArg returns short flag
+func (f ListFlag) ShortArg() string {
+	return "-" + f.Short
+}
+
+// LongArg returns full name flag
+func (f ListFlag) LongArg() string {
+	return "--" + f.Name
+}
+
+// Represent returns possible argument representations
+func (f ListFlag) Represent() []string {
+	if f.Name != "" && f.Short != "" {
+		return []string{f.ShortArg(), f.LongArg()}
+	} else if f.Name != "" {
+		return []string{f.LongArg()}
+	} else {
+		return []string{f.ShortArg()}
+	}
+}
+
+// GetHelpStrings returns the two hand sides of the help message
+//  Example:  ["-a, --arg metavar1 metavar2", "this is an example of help message"]
+func (f ListFlag) GetHelpStrings() []string {
+	var repr string
+	if f.Name != "" && f.Short != "" {
+		repr = fmt.Sprintf("%s, %s", f.ShortArg(), f.LongArg())
+	} else if f.Name == "" {
+		repr = f.ShortArg()
+	} else {
+		repr = f.LongArg()
+	}
+
+	leftHand := fmt.Sprintf("%s %s %s... ", repr, f.Var, f.Var)
+	return []string{leftHand, f.Help}
+}
+
+// Defines the priority of the argument for sorting (also used to determine the argument type)
+func (f ListFlag) getOrder() int {
+	return orderListFlag
 }
 
 /************************************************************/

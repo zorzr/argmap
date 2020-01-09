@@ -126,15 +126,35 @@ func parseArgs(args []string, argsList []Argument) (map[string]interface{}, erro
 				flag := (*arg).(StringFlag)
 
 				if i+flag.NArgs >= n {
-					return nil, fmt.Errorf("Error: incorrect arguments usage")
+					return nil, fmt.Errorf("Error: incorrect arguments number for flag '%s'", args[i])
 				}
 
 				var j int
 				var values = make([]string, flag.NArgs)
 				for j = 0; j < flag.NArgs; j++ {
+					if _, ok = reprMap[args[i+j+1]]; ok {
+						return nil, fmt.Errorf("Error: incorrect arguments number for flag '%s'", args[i])
+					}
 					values[j] = args[i+j+1]
 				}
 				i += j
+
+				argsMap[flag.GetID()] = values
+
+			// LISTFLAG
+			case orderListFlag:
+				flag := (*arg).(ListFlag)
+
+				var j int
+				var values = []string{}
+				for j = i + 1; j < n; j++ {
+					if _, ok := reprMap[args[j]]; !ok {
+						values = append(values, args[j])
+					} else {
+						break
+					}
+				}
+				i = j - 1
 
 				argsMap[flag.GetID()] = values
 
@@ -290,6 +310,24 @@ func (p *ArgsParser) NewStringFlag(f StringFlag) error {
 	return nil
 }
 
+// NewListFlag checks the fields for consistency and inserts the new flag
+func (p *ArgsParser) NewListFlag(f ListFlag) error {
+	if f.Name == "" && f.Short == "" {
+		return fmt.Errorf("Error: at least one identifier must be specified")
+	}
+	if f.Var == "" {
+		f.Var = "value"
+	}
+
+	err := checkIdentifiers(&p.argsList, f)
+	if err != nil {
+		return err
+	}
+
+	p.argsList = append(p.argsList, f)
+	return nil
+}
+
 // NewBoolFlag checks the flag representations and inserts the new flag
 func (p *ArgsParser) NewBoolFlag(f BoolFlag) error {
 	if f.Name == "" && f.Short == "" {
@@ -355,8 +393,10 @@ func (p *ArgsParser) NewCommand(param CommandParams) (*Command, error) {
 //      1. PositionalArg (required)
 //      2. PositionalArg (optional)
 //      3. StringFlag
-//      4. BoolFlag
-//      5. HelpFlag
+//		4. ListFlag
+//      5. BoolFlag
+//      6. HelpFlag
+//		7. Commands
 func (p *ArgsParser) SortArgsList() {
 	sort.Slice(p.argsList, func(i, j int) bool {
 		return p.argsList[i].getOrder() < p.argsList[j].getOrder()

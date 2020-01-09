@@ -8,10 +8,10 @@ func IsPresent(aMap map[string]interface{}, key string) bool {
 	return ok
 }
 
-// GetSFArray searches the map and possibly returns the list of argument values of a StringFlag.
-// An error is returned if the key is not in the map or the identifier does not indicate a
-// StringFlag output.
-func GetSFArray(aMap map[string]interface{}, key string) ([]string, error) {
+// GetList searches the map and possibly returns the list of argument values of a StringFlag
+// or a ListFlag. An error is returned if the key is not in the map or the identifier does
+// not indicate a slice of strings.
+func GetList(aMap map[string]interface{}, key string) ([]string, error) {
 	if argList, ok := aMap[key]; ok {
 		if valuesList, ok := argList.([]string); ok {
 			return valuesList, nil
@@ -21,10 +21,10 @@ func GetSFArray(aMap map[string]interface{}, key string) ([]string, error) {
 	return nil, fmt.Errorf("Error: key not found in map")
 }
 
-// GetSFValue searches the map and the list of StringFlag output values in order to return
+// GetListValue searches the map and the list of output values of a flag in order to return
 // the one at the specified index. An error is returned if the index exceeds the slice bounds.
-func GetSFValue(aMap map[string]interface{}, key string, index int) (string, error) {
-	valuesList, err := GetSFArray(aMap, key)
+func GetListValue(aMap map[string]interface{}, key string, index int) (string, error) {
+	valuesList, err := GetList(aMap, key)
 	if err != nil {
 		return "", err
 	} else if index >= len(valuesList) || index < 0 {

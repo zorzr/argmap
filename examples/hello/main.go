@@ -20,6 +20,6 @@ func main() {
 		parser.ReportError(err)
 	}
 
-	name, _ := argmap.GetSFValue(aMap, "hello", 0)
+	name, _ := argmap.GetListValue(aMap, "hello", 0)
 	fmt.Printf("Hello %s\n", name)
 }
