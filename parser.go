@@ -132,7 +132,7 @@ func parseArgs(args []string, argsList []Argument) (map[string]interface{}, erro
 				var j int
 				var values = make([]string, flag.NArgs)
 				for j = 0; j < flag.NArgs; j++ {
-					values[j] = args[i+j+1] // TODO: check if arg is in reprMap?
+					values[j] = args[i+j+1]
 				}
 				i += j
 
@@ -281,7 +281,7 @@ func (p *ArgsParser) NewStringFlag(f StringFlag) error {
 		return fmt.Errorf("Error: too many value names specified (expected %d, got %d)", f.NArgs, len(f.Vars))
 	}
 
-	err := checkIdentifiers(p.argsList, f)
+	err := checkIdentifiers(&p.argsList, f)
 	if err != nil {
 		return err
 	}
@@ -296,7 +296,7 @@ func (p *ArgsParser) NewBoolFlag(f BoolFlag) error {
 		return fmt.Errorf("Error: at least one identifier must be specified")
 	}
 
-	err := checkIdentifiers(p.argsList, f)
+	err := checkIdentifiers(&p.argsList, f)
 	if err != nil {
 		return err
 	}
@@ -311,7 +311,7 @@ func (p *ArgsParser) NewPositionalArg(a PositionalArg) error {
 		return fmt.Errorf("Error: unspecified argument name")
 	}
 
-	err := checkIdentifiers(p.argsList, a)
+	err := checkIdentifiers(&p.argsList, a)
 	if err != nil {
 		return err
 	}
@@ -333,7 +333,7 @@ func (p *ArgsParser) NewCommand(param CommandParams) (*Command, error) {
 		helpGen:  DefaultCommandHelp,
 	}
 
-	err := checkIdentifiers(p.argsList, c)
+	err := checkIdentifiers(&p.argsList, c)
 	if err != nil {
 		return nil, err
 	}
@@ -380,9 +380,8 @@ func contains(arr []string, val string) bool {
 	return false
 }
 
-// TODO: goroutines
-func checkIdentifiers(argsList []Argument, b Argument) error {
-	for _, a := range argsList {
+func checkIdentifiers(argsList *[]Argument, b Argument) error {
+	for _, a := range *argsList {
 		if a.GetID() == b.GetID() {
 			return fmt.Errorf("Error: identifier '%s' already exists", b.GetID())
 		}

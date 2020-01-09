@@ -143,7 +143,7 @@ func (c *Command) NewStringFlag(f StringFlag) error {
 		return fmt.Errorf("Error: too many value names specified (expected %d, got %d)", f.NArgs, len(f.Vars))
 	}
 
-	err := checkIdentifiers(c.argsList, f)
+	err := checkIdentifiers(&c.argsList, f)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (c *Command) NewBoolFlag(f BoolFlag) error {
 		return fmt.Errorf("Error: at least one identifier must be specified")
 	}
 
-	err := checkIdentifiers(c.argsList, f)
+	err := checkIdentifiers(&c.argsList, f)
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (c *Command) NewPositionalArg(a PositionalArg) error {
 		return fmt.Errorf("Error: unspecified argument name")
 	}
 
-	err := checkIdentifiers(c.argsList, a)
+	err := checkIdentifiers(&c.argsList, a)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func (c *Command) NewSubcommand(param CommandParams) (*Command, error) {
 		helpGen:  DefaultCommandHelp,
 	}
 
-	err := checkIdentifiers(c.argsList, sc)
+	err := checkIdentifiers(&c.argsList, sc)
 	if err != nil {
 		return nil, err
 	}
