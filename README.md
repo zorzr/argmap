@@ -104,6 +104,38 @@ A `StringFlag` can be created just by typing a Name or a Short name for the argu
 
 
 
+### Inserting a ListFlag
+
+```go
+parser.NewListFlag(argmap.ListFlag{Name: "list", Short: "l", Var: "item", Help: "gets a list of items"})
+```
+
+If we take the `StringFlag` as a reference, a `ListFlag` is very similar: while the first gets a predefined number of elements, the latter accepts a sequence of values of whatever lenght. A `ListFlag` can be created with the following parameters:
+
+- *Name*: the long name of the argument, will be called by adding two minus signs before it (e.g., `--list` )
+- *Short*: the short name of the argument, called with only one minus sign (e.g., `-l`)
+  - **Note**. At least one of these two is needed to add the argument. If absent, an error is returned.
+  - **Note**. If one of the two representations already exists in the parser (e.g, `--help`), an error is returned.
+- *Var*: optional name to be used in the help message to refer to the argument values (e.g. `item`)
+- *Help*: help message to be displayed regarding this flag
+
+As for any `StringFlag`, not all of them are necessary if you don't want to. The important is to properly choose a valid identifier (see below for further explanations on the matter).
+
+Some examples:
+
+```
+$ go run main.go --list a b c
+map["list": ["a", "b", "c"]]
+
+$ go run main.go --list
+map["list": []]
+
+$ go run main.go -l spam eggs --stringflag stringflag_value
+map["list": ["spam", "eggs"], "stringflag": ["stringflag_value"]]
+```
+
+
+
 ### Inserting a BoolFlag
 
 ```go
@@ -118,8 +150,7 @@ A `BoolFlag` is much simpler than a `StringFlag`. It has just these three simple
   - **Note**. If one of the two representations already exists in the parser (e.g, `--help`), an error is returned.
 - *Help*: help message to be displayed regarding this flag
 
-As a `StringFlag` , not all of them are necessary if you don't want to. The important is to properly choose a valid identifier (see below for further explanations on the matter).
-
+The same considerations made for `StringFlag` and `ListFlag` types apply here too. 
 
 
 ### Inserting a PositionalArg
@@ -252,11 +283,12 @@ In the `examples` you can find other common usages and several tricks to make a 
 
 
 
-## Upcoming functionalities
+## What's next?
 
-- Variable number of arguments for StringFlags
-- Required StringFlags (for design simplicity)
-- Parallelism through goroutines
+Currently there are no more relevant features to be implemented: `argmap` proves to be flexible enough and with all the most common functionalities! Some possible ideas for the future:
+
+- Accepting `--flag=value` for argument parsing
+- Listening to your suggestions
 
 
 
