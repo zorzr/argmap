@@ -1,0 +1,499 @@
+/*******************************************************************************
+Zlate Theme for GitHub Pages by @zorzr
+Structured on the Slate theme by @jsncostello
+
+********************************************************************************
+The MIT License (MIT)
+Copyright (c) 2015 Jason Costello
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*******************************************************************************/
+
+@import url(normalize.css);
+
+*, *:before, *:after {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+body {
+    color: #f0f0f0;
+    background: #212121;
+    font-size: 18px;
+    font-family: 'Roboto', Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: white;
+    margin-top: 25px;
+    font-weight: 700;
+    font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif;
+    letter-spacing: -1px;
+}
+
+
+h1 {
+    margin-bottom: 15px;
+    font-size: 35px;
+    line-height: 1.1;
+    font-weight: 700;
+}
+
+h2 {
+    margin-bottom: 10px;
+    font-size: 32px;
+    line-height: 1.2;
+}
+
+h3 {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    font-size: 23px;
+    line-height: 1.3;
+}
+
+h4 {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    font-size: 20px;
+}
+
+h5 {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    font-size: 18px;
+}
+
+h6 {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    font-size: 16px;
+}
+
+p {
+    font-size: 18px;
+    margin: 0px 0 5px 0;
+    line-height: 1.5;
+}
+
+footer p {
+    color: #f2f2f2;
+}
+
+a {
+    line-height: 1.0;
+    display: inline-block;
+    text-decoration: none;
+    border-bottom: 1px dotted #888;
+    color: inherit;
+    text-shadow: none;
+}
+
+a:hover, a:focus {
+    color: #53b4ff;
+    border-bottom: 1px solid #53b4ff;
+}
+
+em {
+    font-style: italic;
+}
+
+strong {
+    font-weight: bold;
+}
+
+img {
+    position: relative;
+    max-width: 739px;
+    padding: 5px;
+    margin: 10px 0 10px 0;
+
+    /* box-shadow: 0 0 5px #ebebeb;
+    -webkit-box-shadow: 0 0 5px #ebebeb;
+    -moz-box-shadow: 0 0 5px #ebebeb;
+    -o-box-shadow: 0 0 5px #ebebeb;
+    -ms-box-shadow: 0 0 5px #ebebeb; */
+}
+
+p img {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    vertical-align: middle;
+    text-align: center;
+    border: none;
+}
+
+pre, code {
+    width: 100%;
+    color: #8acaff;
+    background-color: #303030;
+    border: 1px solid #666;
+
+    font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
+    font-size: 14px;
+}
+
+pre {
+    padding: 10px 20px;
+    overflow: auto;
+}
+
+code {
+    padding: 5px 8px;
+    margin: 0 3px;
+}
+
+pre code {
+    display: block;
+    border: none;
+}
+
+blockquote {
+    color: #9ac5ff;
+    border-left: 3px solid #5d95df;
+    margin: 4px 0 20px 2px;
+    padding-left: 20px;
+    font-style: italic;
+}
+
+blockquote a:hover, blockquote a:focus {
+    color: #fff;
+    border-bottom: 1px solid #fff;
+}
+
+ul, ol, dl {
+    margin: 0 0 15px 0;
+    padding-left: 20px;
+}
+
+dl dt {
+    font-weight: bold;
+}
+
+dl dd {
+    margin-left: 0;
+    padding-left: 0;
+    font-style: italic;
+}
+
+dl p {
+    padding-left: 20px;
+    font-style: italic;
+}
+
+hr {
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+}
+
+table {
+    text-align: left;
+    border: 1px solid #0078d4;
+}
+
+th {
+    padding: 10px;
+    /* background: #0062ad; */
+    color: white;
+
+    background: #0078d4;
+}
+
+td {
+    padding: 10px;
+    border: 1px solid #0078d4;
+}
+
+form {
+    background: #f2f2f2;
+    padding: 20px;
+}
+
+
+/*******************************************************************************
+Full-Width Styles
+*******************************************************************************/
+
+.footer {
+    color: #bbb;
+    font-size: 14px;
+    text-align: right;
+    padding-right: 100px;
+    /* text-align: center; */
+}
+
+.outer {
+    width: 100%;
+    padding: 0 10px;
+}
+
+.inner {
+    position: relative;
+    max-width: 960px;
+    padding: 20px 10px;
+    margin: 0 auto;
+}
+
+header {
+    color: #f2f2f2;
+}
+
+#header_wrap {
+    background: #212121;
+}
+
+#header_wrap .inner {
+    padding: 60px 10px 0px 0px;
+}
+
+/* Button to be displayed on mobile */
+#nav-button {
+    display: none;
+    width: 52px; height: 40px;
+    background: #272727 url("../pics/menu.png") no-repeat center;
+    border: 2px solid #555;
+    border-radius: 4px;
+}
+
+/* Page content */
+#page_title {
+    margin: 0;
+    color: #fff;
+    font-size: 54px;
+    font-weight: 700;
+    padding-left: 100px;
+}
+
+#page_tagline {
+    margin-top: 5px;
+    margin-bottom: 30px;
+    padding-left: 100px;
+    color: #fff;
+    font-size: 36px;
+    font-weight: 300;
+    background: none;
+}
+
+#main_content_wrap {
+    margin-top: 30px;
+}
+
+#main_content {
+    padding-top: 40px;
+}
+
+#main_content.inner {
+    background: transparent;
+    padding: 10px 100px 50px;
+    color: #eee;
+}
+
+#footer_wrap {
+    background: #212121;
+}
+
+#banner {
+    position: absolute;
+    width: 100%;
+    top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    font-weight: 700;
+    z-index: 10;
+}
+
+/* Guardians of the Galaxy */
+.tab {
+    background: #444;
+    color: #f8f8f8;
+    padding: 8px 13px 8px 13px;
+    font-weight: 700;
+    border: none;
+    line-height: 1.5;
+    margin-right: -5px;
+}
+
+.tab.current {
+    background: #666;
+    color: white;
+}
+
+.tab.leftmost {
+    border-radius: 7px 0 0 7px;
+}
+.tab.rightmost {
+    border-radius: 0 7px 7px 0;
+}
+
+.tab:hover, .tab:focus {
+    color: white;
+    border-bottom: none;
+    background: #0090ff;
+    outline: none;
+}
+
+
+/*******************************************************************************
+Small Device Styles
+*******************************************************************************/
+
+@media screen and (max-width: 992px) {
+    img {
+        max-width: 100%;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .outer {
+        padding: 0;
+    }
+
+    .inner {
+        min-width: 320px;
+        max-width: 480px;
+    }
+
+    .footer {
+        padding-right: 10px;
+    }
+
+    #header_wrap .inner {
+        padding: 30px 10px 50px 10px;
+    }
+
+    #nav-button {
+        display: block;
+        top: 0;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: -20px;
+    }
+
+    #banner {
+        top: auto; right:auto;
+        display: none;
+        position: relative;
+
+        width: 100%;
+        text-align: center;
+        margin-bottom: -20px;
+        margin-top: 40px;
+    }
+
+    #banner a {
+        float: none;
+        display: block;
+    }
+
+    #banner a:hover {
+        color: white;
+    }
+
+    .tab {
+        background: #383838;
+        padding: auto 10px;
+        margin: 0 -10px;
+    }
+
+    .tab.leftmost, .tab.rightmost {
+        border-radius: 0;
+    }
+
+    #main_content_wrap {
+        margin-top: 0;
+    }
+    #main_content.inner {
+        padding: 40px 20px;
+        border-radius: 0;
+    }
+
+    #page_title {
+        margin-top: 35px;
+        padding-left: 10px;
+    }
+
+    #page_tagline {
+        margin-bottom: -20px;
+        padding-left: 10px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    h2 {
+        font-size: 26px;
+    }
+
+    code, pre {
+        max-width: 480px;
+        font-size: 11px;
+    }
+}
+
+/******************************************/
+/* Light Mode classes (to be implemented) */
+/******************************************/
+body.light {
+    color:#373737;
+}
+
+h1.light, h2.light, h3.light, h4.light, h5.light, h6.light {
+    color:#222222;
+}
+
+pre.light, code.light {
+    color: #fff;
+    background-color: #222;
+    /* box-shadow: 0 0 10px rgba(0,0,0,.1); */
+}
+
+blockquote.light {
+    color: #666;
+    border-left: 3px solid #bbb;
+}
+
+table.light {
+    border: 1px solid #373737;
+}
+
+th.light {
+    background: #222;
+    color: #fff;
+}
+
+td.light, hr.light {
+    border: 1px solid #222;
+}
+
+#main_content.light {
+    padding: 70px 100px;
+    border-radius: 12px;
+    background: white;
+    /* box-shadow: 0 0 5px #ebebeb;
+    -webkit-box-shadow: 0 0 5px rgba(0, 183, 255, 0.5);
+    -moz-box-shadow: 0 0 5px rgba(0, 183, 255, 0.5);
+    -o-box-shadow: 0 0 5px rgba(0, 183, 255, 0.5);
+    -ms-box-shadow: 0 0 5px rgba(0, 183, 255, 0.5); */
+}
