@@ -1,7 +1,9 @@
-# argmap
-**argmap** is a simple command line argument parser for [Go](https://golang.org) providing high level features and wide freedom of usage. The user inputs are stored in a map allowing to easily gather, analyze and retrieve them.
+<img src="https://zorzr.github.io/argmap/resources/icon.png" width=150 align="right"/>
 
-Along with positional arguments, different types of flags can be defined according to your needs. Nothing is arbitrarily made without giving you a choice, even in case something goes wrong: there are built-in functions to easily report possible errors, but they won't be automatically called if you do not want so!
+# argmap &emsp;<span style="margin-left: 20px;">[![Go v1.13](https://img.shields.io/badge/Go-v1.13-blue.svg)](https://www.golang.org/)  [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-3bcc28.svg)](https://www.gnu.org/licenses/gpl-3.0)</span>
+**argmap** is a simple command line argument parser for Go providing high level features and wide freedom of usage. The user inputs are stored in a map allowing to easily gather, analyze and retrieve them.
+
+Along with positional arguments and commands, different types of flags can be defined according to the needs of your application. Nothing is arbitrarily made without giving a choice about the handling of the results, even in case something goes wrong: there are built-in functions to easily report possible errors, but they won't be automatically called if you do not want so!
 
 
 
@@ -18,6 +20,10 @@ Along with positional arguments, different types of flags can be defined accordi
   - The two values are inserted in a map as a slice of strings
     - Easy to retrieve and manage (e.g., integer conversion)
     - ```E.g.:    map["flag": ["v1", "v2"]]```
+- `ListFlag`  arguments
+  - ```Usage:    argmap [-f|--flag] [value1] [value2] ...```
+  - Undefined number of input values (still separated by a space `' '`)
+  - They work just like a `StringFlag`, but have higher flexibility
 - `BoolFlag`  arguments
   - ```Usage:    argmap [-f|--flag]```
   - If the flag is present, `true` is stored in the map
