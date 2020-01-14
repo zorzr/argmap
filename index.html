@@ -21,6 +21,16 @@
 				margin-right: auto;
 				margin-bottom: 15px;
 			}
+
+            #argmap_logo {
+                width: 150px;
+            }
+            @media screen and (max-width: 750px) {
+                #argmap_logo { width: 100px; }
+            }
+            @media screen and (max-width: 480px) {
+                #argmap_logo { width: 80px; }
+            }
 		</style>
 	</head>
     <body>
@@ -45,8 +55,82 @@
         <div id="main_content_wrap" class="outer">
             <section id="main_content" class="inner">
 			
-				<h1>About</h1>
-                Website under construction
+                <img id="argmap_logo" src="https://zorzr.github.io/argmap/resources/icon.png" align="right"/>
+                <h1>About</h1>
+                <p><strong>argmap</strong> is a simple command line argument parser for Go providing high level features and wide freedom of usage. The user inputs are stored in a map allowing to easily gather, analyze and retrieve them.</p>
+                <p>Along with positional arguments and commands, different types of flags can be defined according to the needs of your application. Please note that nothing is arbitrarily made without giving you, the developer, a choice about the handling of the results, even in case something goes wrong: there are built-in functions to easily report possible errors, but they won't be automatically called if you do not want so to ensure high flexibility of usage.</p>
+                
+                <h2 id="start">Getting started</h2>
+                <p>In order to use <em>argmap</em>, first download it using the <code>go get</code> command as follows:</p>
+                <pre><code>go get -v "github.com/zorzr/argmap"</code></pre>
+                
+                <p>Afterwards, in your .go files it is sufficient to import the package at the beginning of the files. Just add <em>argmap</em> to the list of imports:</p>
+                <pre><code>import "github.com/zorzr/argmap"</code></pre>
+                
+                <h2 id="parse">Defining arguments</h2>
+                <p>If you already practised with <a href="#">argparse for Python</a>, you will find <em>argmap</em> rather familiar. After importing the package, you need to create an <code>ArgsParser</code> object as follows:</p>
+                <pre><code>parser := argmap.NewArgsParser("Program name", "Program description")</code></pre>
+                <p>The returned object includes all the methods you'll need to add arguments and parse the command line inputs. It can be also used to print the program help and report errors.</p>
+                <p>There are different kinds of arguments you can define.</p>
+<pre><code>// StringFlag arguments:    [--str|-s arg1 arg2]
+parser.NewStringFlag(argmap.StringFlag{Name: "str", Short: "s", NArgs: 2, Vars: []string{"arg1", "arg2"}, Help: "stores the two arguments in an array"})
+
+// ListFlag arguments:      [--list|-l item item ...]
+parser.NewListFlag(argmap.ListFlag{Name: "list", Short: "l", Var: "item", Help: "list of items (could receive any number, even none)"})
+    
+// BoolFlag arguments:      [--bool|-b]
+parser.NewBoolFlag(argmap.BoolFlag{Name: "bool", Short: "b", Help: "stores true when present"})
+
+// PositionalArg
+parser.NewPositionalArg(argmap.NewPositionalArg{Name: "pos", Required: True, Help: "required argument (recognized just by its position)"})
+</code></pre>
+
+                <p>The ArgsParser can also insert commands, which can help you structure your program and accept their own set of arguments (separate from the program ones). Clearly, commands support all of the already mentioned types of arguments, even (nested) sub-commands.</p>
+<pre><code>// main.go cmd --bool sub ...
+cmd, err := parser.NewCommand(argmap.CommandParams{Name: "cmd", Help: "a command"})
+cmd.NewBoolFlag(argmap.BoolFlag{Name: "bool"})
+
+sub, err := cmd.NewSubcommand(argmap.CommandParams{Name: "sub", Help: "a subcommand")
+</code></pre>
+
+                <p>Further information on the usage of the parser and the arguments can be found on the <a href="https://github.com/zorzr/argmap">GitHub repository</a>.</p>
+
+                <h2>Parsing arguments</h2>
+                <p>Once all arguments have been defined, the command line inputs can be parsed and organized in a map.</p>
+                <pre><code>argsMap, err := parser.Parse()</code></pre>
+                <p>If everything goes well, the arguments are grouped in the <code>argsMap</code> instance. Every value can be found indexed by the previously defined argument name (or its abbreviation, if only the short parameter was passed). Now, <em>argmap</em> provides some useful functions to get values from the map in a straightforward way. Here's some examples:</p>
+<pre><code>strValues, err := argmap.GetList(argsMap, "str")
+strArg1, err := argmap.GetListValue(argsMap, "str", 0)
+strArg2, err := argmap.GetListValue(argsMap, "str", 1)
+
+listValues, err := argmap.GetList(argsMap, "list")
+boolValue := argmap.GetBool(argsMap, "bool")
+positionalValue, err := argmap.GetPositional(argsMap, "pos")
+
+// commands have their own argument map
+// the same functions can be used on the cmdMap
+cmdMap, err := argmap.GetCommandMap(argsMap, "cmd")
+cmdBool, err := argmap.GetBool(cmdMap, "bool")
+</code></pre>
+
+                <p>Most of these functions return an error if the key was not found in the map (that is, it wasn't in the terminal inputs) or the requested value isn't of the correct type (e.g., of course you can't get a positional string value with <code>GetList()</code>, which returns an array). The only exception is <code>GetBool()</code> which returns False in any of these circumstances. If you want to check if an argument is present in the map, you may want to use the function <code>IsPresent()</code>.</p>
+<pre><code>if IsPresent(argsMap, "str") {
+    strValues, _ := argmap.GetList(argsMap, "str")
+    fmt.Printf("str: [%s, %s]\n", strValues[0], strValues[1])
+}</code></pre>
+
+                <br>
+                <p>If there is an error when calling <code>parser.Parse()</code>, probably the flags weren't properly used (e.g., a value was missing from a StringFlag) or a required positional was missing. You can automatically report the error and exit by doing:</p>
+<pre><code>argsMap, err := parser.Parse()
+if err != nil {
+    parser.ReportError(err)
+    // prints the error, shows the help message and exits
+}</code></pre>
+
+                <h2>Support</h2>
+                <p>Please report if you notice any bug by opening a new issue on Github!</p>
+                <p>Thank you!</p>
+
             </section>
         </div>
     
